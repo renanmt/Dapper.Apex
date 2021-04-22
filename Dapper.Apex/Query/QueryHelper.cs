@@ -12,6 +12,7 @@ namespace Dapper.Apex.Query
     {
         public string SelectQuery { get; set; }
         public string SelectAllQuery { get; set; }
+        public string SelectCountQuery { get; set; }
         public string InsertQuery { get; set; }
         public string InsertNoValuesQuery { get; set; }
         public string UpdateQuery { get; set; }
@@ -26,6 +27,7 @@ namespace Dapper.Apex.Query
         private const string ColumnEqualsToParamTemplate = "{0} = @{1}";
         private const string SelectTemplate = "select {0} from {1} where {2}";
         private const string SelectAllTemplate = "select {0} from {1}";
+        private const string SelectCountTemplate = "select count(*) from {0}";
         private const string InsertTemplate = "insert into {0} ({1}) values ({2})";
         private const string InsertNoValuesTemplate = "insert into {0} ({1}) values (PARAMS)";
         private const string UpdateTemplate = "update {0} set {1} where {2}";
@@ -36,12 +38,21 @@ namespace Dapper.Apex.Query
         public static readonly ConcurrentDictionary<RuntimeTypeHandle, TypeQueryInfo> QueryInfos = new ConcurrentDictionary<RuntimeTypeHandle, TypeQueryInfo>();
         public static readonly ConcurrentDictionary<string, string> UpdateFieldsQueryCache = new ConcurrentDictionary<string, string>();
 
+        /// <summary>
+        /// Flushes all query caches.
+        /// </summary>
         public static void FlushCache()
         {
             QueryInfos.Clear();
             UpdateFieldsQueryCache.Clear();
         }
 
+        /// <summary>
+        /// Gets the query information object for a given type and database.
+        /// </summary>
+        /// <param name="connection">A database connection object to represent the origin of the given type.</param>
+        /// <param name="typeInfo">The TypeInfo object containing all type required information.</param>
+        /// <returns>The query information object filled with all related queries of the given type.</returns>
         public static TypeQueryInfo GetQueryInfo(IDbConnection connection, TypeInfo typeInfo)
         {
             if (QueryInfos.TryGetValue(typeInfo.TypeHandle, out var typeQueryInfo))
@@ -54,12 +65,20 @@ namespace Dapper.Apex.Query
             return typeQueryInfo;
         }
 
-        public static IDictionary<string, ISqlDbHelper> SupportedHelpers { get; } = new Dictionary<string, ISqlDbHelper>()
+        /// <summary>
+        /// The collection of current supported Database Helpers
+        /// </summary>
+        public static IDictionary<string, ISqlDbHelper> SupportedDatabaseHelpers { get; } = new Dictionary<string, ISqlDbHelper>()
         {
             { DefaultConnection, new SqlServerDbHelper() },
             { "mysqlconnection", new MySqlDbHelper() }
         };
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         public static string GetSurrogateKeyReturnQuery(IDbConnection connection)
         {
             var sqlHelper = GetSqlHelper(connection);
@@ -103,23 +122,22 @@ namespace Dapper.Apex.Query
         {
             var key = $"{string.Join(null, fields)}{exclude}";
 
-            if (UpdateFieldsQueryCache.TryGetValue(key, out var sql))
+            if (!UpdateFieldsQueryCache.TryGetValue(key, out var sqlFields))
             {
-                return sql;
+                var sb = new StringBuilder();
+                var sqlHelper = GetSqlHelper(connection);
+                var props = exclude ?
+                    typeInfo.WritableProperties.Where(p => !fields.Contains(p.Name)) :
+                    typeInfo.WritableProperties.Where(p => fields.Contains(p.Name));
+
+                GenerateColumnEqualsParamSequence(props, sqlHelper, sb, ", ");
+
+                sqlFields = sb.ToString();
+
+                UpdateFieldsQueryCache.TryAdd(key, sqlFields);
             }
 
-            var sb = new StringBuilder();
-            var sqlHelper = GetSqlHelper(connection);
-            var props = exclude ?
-                typeInfo.WritableProperties.Where(p => !fields.Contains(p.Name)) :
-                typeInfo.WritableProperties.Where(p => fields.Contains(p.Name));
-
-            GenerateColumnEqualsParamSequence(props, sqlHelper, sb, ", ");
-
-            var sqlFields = sb.ToString();
-            sql = queryInfo.UpdateFieldsQuery.Replace("FIELDS", sqlFields);
-
-            UpdateFieldsQueryCache.TryAdd(key, sql);
+            var sql = queryInfo.UpdateFieldsQuery.Replace("FIELDS", sqlFields);
 
             return sql;
         }
@@ -168,6 +186,7 @@ namespace Dapper.Apex.Query
 
             typeQueryInfo.SelectQuery = string.Format(SelectTemplate, readableColumns, tableName, keyEqualsParams);
             typeQueryInfo.SelectAllQuery = string.Format(SelectAllTemplate, readableColumns, tableName);
+            typeQueryInfo.SelectCountQuery = string.Format(SelectCountTemplate, tableName);
             typeQueryInfo.InsertQuery = string.Format(InsertTemplate, tableName, insertColumns, insertParams);
             typeQueryInfo.InsertNoValuesQuery = string.Format(InsertNoValuesTemplate, tableName, insertColumns);
             typeQueryInfo.UpdateQuery = string.Format(UpdateTemplate, tableName, updateColumnsEqualsParams, keyEqualsParams);
@@ -176,6 +195,7 @@ namespace Dapper.Apex.Query
             typeQueryInfo.DeleteAllQuery = string.Format(DeleteAllTemplate, tableName);
 
             QueryInfos.TryAdd(typeInfo.TypeHandle, typeQueryInfo);
+
             return typeQueryInfo;
         }
 
@@ -183,9 +203,9 @@ namespace Dapper.Apex.Query
         {
             var connectionName = connection.GetType().Name.ToLower();
 
-            var sqlHelper = SupportedHelpers.TryGetValue(connectionName, out var helper)
+            var sqlHelper = SupportedDatabaseHelpers.TryGetValue(connectionName, out var helper)
                 ? helper
-                : SupportedHelpers[DefaultConnection];
+                : SupportedDatabaseHelpers[DefaultConnection];
 
             return sqlHelper;
         }

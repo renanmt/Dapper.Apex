@@ -14,6 +14,25 @@ namespace Dapper.Apex.Test
     [TestCaseOrderer("Dapper.Apex.Test.PriorityOrderer", "Dapper.Apex.Test")]
     public class ModelXTests
     {
+        [Theory(DisplayName = "Get Count")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void GetCount(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            long count = 0;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                count = connection.GetCount<ModelX>();
+                connection.Close();
+            }
+
+            Assert.Equal(2, count);
+        }
+
         [Theory(DisplayName = "Get Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
         [TestPriority(1)]
@@ -218,10 +237,9 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
-                var count = connection.Insert(entity);
+                connection.Insert(entity);
 
                 Assert.Equal(3, entity.Id);
-                Assert.Equal(1, count);
 
                 entity = connection.Get<ModelX>(3);
 
@@ -259,7 +277,7 @@ namespace Dapper.Apex.Test
                 var entity1Id = lastId + 1;
                 var entity2Id = lastId + 2;
 
-                var count = connection.InsertMany<ModelX>(entities, insertMode: InsertMode.OneByOne);
+                var count = connection.InsertMany<ModelX>(entities, operationMode: OperationMode.OneByOne);
 
                 Assert.Equal(entity1Id, entity1.Id);
                 Assert.Equal(entity2Id, entity2.Id);
@@ -308,7 +326,7 @@ namespace Dapper.Apex.Test
                 var entity1Id = lastId + 1;
                 var entity2Id = lastId + 2;
 
-                var count = connection.InsertMany<ModelX>(entities, insertMode: InsertMode.SingleShot);
+                var count = connection.InsertMany<ModelX>(entities, operationMode: OperationMode.SingleShot);
 
                 Assert.Equal(entity1Id, entity1.Id);
                 Assert.Equal(entity2Id, entity2.Id);

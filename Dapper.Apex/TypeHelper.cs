@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,18 @@ using System.Text;
 
 namespace Dapper.Apex
 {
+    /// <summary>
+    /// Defines the an entity type of key.
+    /// </summary>
     public enum KeyType
     {
         Natural,
         Surrogate
     }
 
+    /// <summary>
+    /// Collection of property information of a type.
+    /// </summary>
     public class TypeInfo
     {
         public RuntimeTypeHandle TypeHandle { get; set; }
@@ -25,14 +32,21 @@ namespace Dapper.Apex
         public IEnumerable<PropertyInfo> InsertableProperties { get; set; }
     }
 
+    /// <summary>
+    /// A class that provides all property information of types.
+    /// </summary>
     public static class TypeHelper
     {
         public static readonly ConcurrentDictionary<RuntimeTypeHandle, TypeInfo> TypeInfos = new ConcurrentDictionary<RuntimeTypeHandle, TypeInfo>();
         public static readonly ConcurrentDictionary<RuntimeTypeHandle, Type> ElementTypes = new ConcurrentDictionary<RuntimeTypeHandle, Type>();
 
+        /// <summary>
+        /// Flushes all type caches.
+        /// </summary>
         public static void FlushCache()
         {
             TypeInfos.Clear();
+            ElementTypes.Clear();
         }
 
         /// <summary>
@@ -51,12 +65,15 @@ namespace Dapper.Apex
             return ProcessType(type);
         }
 
+        /// <summary>
+        /// Checks if a give type is a collection and replaces its element type if true.
+        /// </summary>
+        /// <param name="type">The given type to be checked if it's a collection. 
+        /// It will get replaced by the element type if the given type is a collection.</param>
+        /// <returns>True if type is a collection.</returns>
         public static bool IsCollection(ref Type type)
         {
-            if (TypeInfos.ContainsKey(type.TypeHandle))
-            {
-                return false;
-            }
+            if (!type.IsAssignableTo(typeof(IEnumerable))) return false;
 
             if (ElementTypes.TryGetValue(type.TypeHandle, out var storedType))
             {
@@ -64,11 +81,10 @@ namespace Dapper.Apex
                 return true;
             }
 
-            var isCollection = false;
+            var inputType = type;
 
             if (type.IsArray)
             {
-                isCollection = true;
                 type = type.GetElementType();
             }
             else if (type.IsGenericType)
@@ -78,18 +94,14 @@ namespace Dapper.Apex
                 if (typeInfo.ImplementedInterfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)) ||
                     typeInfo.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
-                    isCollection = true;
-                    type = type.GetGenericArguments()[0];
+                    type = type.GetGenericArguments().FirstOrDefault();
                 }
             }
-
-            if (!isCollection)
-                return false;
 
             if (type == null)
                 throw new DapperApexException("Unable to determine the element type of the collection.");
 
-            ElementTypes.TryAdd(type.TypeHandle, type);
+            ElementTypes.TryAdd(inputType.TypeHandle, type);
 
             return true;
         }

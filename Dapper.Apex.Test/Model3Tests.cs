@@ -12,13 +12,34 @@ using Xunit;
 namespace Dapper.Apex.Test
 {
     [Collection("Database collection")]
+    [TestCaseOrderer("Dapper.Apex.Test.PriorityOrderer", "Dapper.Apex.Test")]
     public class Model3Tests
     {
         private static Tuple<Guid, Guid> Entity1Id = Tuple.Create(new Guid("6018F3BE-3F6A-45D9-BE34-ACCA441AAB2F"), new Guid("8EB6501F-EC5A-4696-B579-BF73E9E2B914"));
         private static Tuple<Guid, Guid> Entity2Id = Tuple.Create(new Guid("F824BFFC-24FF-4932-8084-C7E91606141F"), new Guid("12B455AE-C111-4F8D-B333-60A8E4958B5F"));
 
+        [Theory(DisplayName = "Get Count")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void GetCount(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            long count = 0;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                count = connection.GetCount<Model3>();
+                connection.Close();
+            }
+
+            Assert.Equal(2, count);
+        }
+
         [Theory(DisplayName = "Get Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void GetEntityById(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -40,6 +61,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Get Non Existing Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void GetNonExistingEntity(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -59,6 +81,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Get All")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void GetAll(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -82,6 +105,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Update Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void UpdateEntity(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -110,6 +134,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Update Many")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void UpdateMany(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -154,6 +179,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Update Non Existing Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void UpdateNonExistingEntity(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -179,6 +205,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Insert Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void InsertEntity(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -200,9 +227,7 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
-                var count = connection.Insert(entity);
-
-                Assert.Equal(1, count);
+                connection.Insert(entity);
 
                 entity = connection.Get<Model3>(keys);
 
@@ -215,6 +240,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Insert Many One by One")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void InsertManyOneByOne(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -234,7 +260,7 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
-                var count = connection.InsertMany<Model3>(entities, insertMode: InsertMode.OneByOne);
+                var count = connection.InsertMany<Model3>(entities, operationMode: OperationMode.OneByOne);
 
                 Assert.Equal(keys1.Id1, entity1.Id1);
                 Assert.Equal(keys1.Id2, entity1.Id2);
@@ -258,6 +284,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Insert Many Single Shot")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void InsertSingleShot(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -277,7 +304,7 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
-                var count = connection.InsertMany<Model3>(entities, insertMode: InsertMode.SingleShot);
+                var count = connection.InsertMany<Model3>(entities, operationMode: OperationMode.SingleShot);
 
                 Assert.Equal(keys1.Id1, entity1.Id1);
                 Assert.Equal(keys1.Id2, entity1.Id2);
@@ -301,6 +328,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Delete Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void DeleteEntityById(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -336,6 +364,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Delete Non Existing Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void DeleteNonExistingEntity(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();
@@ -360,6 +389,7 @@ namespace Dapper.Apex.Test
 
         [Theory(DisplayName = "Delete Many")]
         [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(1)]
         public void DeleteMany(IDbConnection dbConnection)
         {
             QueryHelper.FlushCache();

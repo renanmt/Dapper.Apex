@@ -1,66 +1,79 @@
 ﻿using Dapper.Apex.Query;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 
 namespace Dapper.Apex
 {
     public static partial class DapperApex
     {
-        public static long Insert<T>(this IDbConnection connection, T entityToInsert,
+        /// <summary>
+        /// Inserts a given entity to its related database table.
+        /// </summary>
+        /// <remarks>If the given entity has a surrogate key, the object will be updated with the new key.</remarks>
+        /// <typeparam name="T">The type of the entity to be inserted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="entity">The entity object to be inserted.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        public static void Insert<T>(this IDbConnection connection, T entity,
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
-            if (entityToInsert == null)
-                throw new ArgumentNullException(nameof(entityToInsert));
+            ValidateEntityForInsert(entity);
 
             var type = typeof(T);
-
-            var isCollection = TypeHelper.IsCollection(ref type);
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            if (!isCollection && typeInfo.KeyType == KeyType.Surrogate)
-            {
-                var sql = $"{queryInfo.InsertQuery};{QueryHelper.GetSurrogateKeyReturnQuery(connection)};";
-                var res = connection.QueryMultiple(sql, entityToInsert, transaction, commandTimeout).Read();
+            var sql = QueryHelper.GetInsertQuery(connection, typeInfo, queryInfo);
 
-                if (res.FirstOrDefault()?.id == null) return 0;
-                var id = res.FirstOrDefault()?.id;
+            if (typeInfo.KeyType == KeyType.Surrogate)
+            {
+                var res = connection.QueryMultiple(sql, entity, transaction, commandTimeout).Read();
+
+                var id = res.First().id;
 
                 var keyProperty = typeInfo.PrimaryKeyProperties.First();
-                keyProperty.SetValue(entityToInsert, Convert.ChangeType(id, keyProperty.PropertyType), null);
-
-                return 1;
+                keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
             }
             else
             {
-                var count = connection.Execute(queryInfo.InsertQuery, entityToInsert, transaction, commandTimeout);
-                return count;
+                connection.Execute(sql, entity, transaction, commandTimeout);
             }
         }
 
-        public static long InsertMany<T>(this IDbConnection connection, IEnumerable<T> entitiesToInsert,
+        /// <summary>
+        /// Inserts all entities of a given collection to their related table in the database.
+        /// </summary>
+        /// <typeparam name="T">The type of the entities to be inserted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="entities">The collection of entity objects to be inserted.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        /// <param name="operationMode">The operation execution mode. Choose it accordingly to your environments latency and number of entities.</param>
+        /// <returns>The number of rows affected by the operation.</returns>
+        public static long InsertMany<T>(this IDbConnection connection, IEnumerable<T> entities,
             IDbTransaction transaction = null, int? commandTimeout = null,
-            InsertMode insertMode = InsertMode.OneByOne) where T : class
+            OperationMode operationMode = OperationMode.OneByOne) where T : class
         {
-            if (entitiesToInsert == null)
-                throw new ArgumentNullException(nameof(entitiesToInsert));
+            if (entities == null)
+                throw new ArgumentNullException(nameof(entities));
 
-            if (!entitiesToInsert.Any()) return 0;
+            if (!entities.Any()) return 0;
 
             var type = typeof(T);
-
-            TypeHelper.IsCollection(ref type);
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            if (insertMode == InsertMode.SingleShot)
-                return InsertManySingleShot(connection, entitiesToInsert, typeInfo, queryInfo, transaction, commandTimeout);
+            if (operationMode == OperationMode.SingleShot)
+                return InsertManySingleShot(connection, entities, typeInfo, queryInfo, transaction, commandTimeout);
 
-            return InsertManyOneByOne(connection, entitiesToInsert, typeInfo, queryInfo, transaction, commandTimeout);
+            return InsertManyOneByOne(connection, entities, typeInfo, queryInfo, transaction, commandTimeout);
         }
 
         private static long InsertManySingleShot<T>(this IDbConnection connection, IEnumerable<T> entitiesToInsert,
@@ -128,6 +141,15 @@ namespace Dapper.Apex
                 connection.Execute(sql, entitiesToInsert, transaction, commandTimeout);
                 return entitiesToInsert.Count();
             }
+        }
+
+        private static void ValidateEntityForInsert<T>(T entity) where T : class
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            if (entity is IEnumerable)
+                throw new NotSupportedException("Method not supported for collections. Try InsertMany instead.");
         }
     }
 }

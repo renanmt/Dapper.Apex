@@ -16,6 +16,25 @@ namespace Dapper.Apex.Test
     [TestCaseOrderer("Dapper.Apex.Test.PriorityOrderer", "Dapper.Apex.Test")]
     public class Model2Tests
     {
+        [Theory(DisplayName = "Get Count")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void GetCount(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            long count = 0;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                count = connection.GetCount<Model2>();
+                connection.Close();
+            }
+
+            Assert.Equal(2, count);
+        }
+
         [Theory(DisplayName = "Get Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
         [TestPriority(1)]
@@ -200,10 +219,9 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
-                var count = connection.Insert(entity);
+                connection.Insert(entity);
 
                 Assert.Equal(3, entity.Model2Id);
-                Assert.Equal(1, count);
 
                 entity = connection.Get<Model2>(3);
 
@@ -239,7 +257,7 @@ namespace Dapper.Apex.Test
                 var entity1Id = lastId + 1;
                 var entity2Id = lastId + 2;
 
-                var count = connection.InsertMany<Model2>(entities, insertMode: InsertMode.OneByOne);
+                var count = connection.InsertMany<Model2>(entities, operationMode: OperationMode.OneByOne);
 
                 Assert.Equal(entity1Id, entity1.Model2Id);
                 Assert.Equal(entity2Id, entity2.Model2Id);
@@ -284,7 +302,7 @@ namespace Dapper.Apex.Test
                 var entity1Id = lastId + 1;
                 var entity2Id = lastId + 2;
 
-                var count = connection.InsertMany<Model2>(entities, insertMode: InsertMode.SingleShot);
+                var count = connection.InsertMany<Model2>(entities, operationMode: OperationMode.SingleShot);
 
                 Assert.Equal(entity1Id, entity1.Model2Id);
                 Assert.Equal(entity2Id, entity2.Model2Id);
@@ -313,15 +331,15 @@ namespace Dapper.Apex.Test
             Fixture fixture = new Fixture();
 
             var entities = new List<Model2>();
-            fixture.AddManyTo(entities, 200);
+            fixture.AddManyTo(entities, 400);
 
             using (var connection = dbConnection)
             {
                 connection.Open();
 
-                var count = connection.InsertMany<Model2>(entities, insertMode: InsertMode.OneByOne);
+                var count = connection.InsertMany<Model2>(entities, operationMode: OperationMode.OneByOne);
 
-                Assert.Equal(200, count);
+                Assert.Equal(400, count);
 
                 connection.Close();
             }
@@ -336,16 +354,16 @@ namespace Dapper.Apex.Test
             Fixture fixture = new Fixture();
 
             var entities = new List<Model2>();
-            fixture.AddManyTo(entities, 200);
+            fixture.AddManyTo(entities, 400);
 
             using (var connection = dbConnection)
             {
                 connection.Open();
 
-                var count = connection.InsertMany<Model2>(entities, insertMode: InsertMode.SingleShot);
+                var count = connection.InsertMany<Model2>(entities, operationMode: OperationMode.SingleShot);
 
-                Assert.Equal(200, count);
-
+                Assert.Equal(400, count);
+                
                 connection.Close();
             }
         }

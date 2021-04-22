@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Dapper.Apex.Query;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -11,62 +12,92 @@ using System.Threading.Tasks;
 
 namespace Dapper.Apex
 {
-    /// <summary>
-    /// Extension methods for Dapper
-    /// </summary>
     public static partial class DapperApex
     {
-        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, ITuple keys, 
+        /// <summary>
+        /// Deletes an entity from the database by its key.
+        /// </summary>
+        /// <typeparam name="T">The type of the entity to be deleted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="key">The Tuple representing the entity key.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        /// <returns>True if the entity was found and successfully deleted.</returns>
+        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, ITuple key, 
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
-            if (keys == null)
-                throw new ArgumentNullException(nameof(keys));
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
 
             var type = typeof(T);
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, keys, typeInfo.PrimaryKeyProperties);
+            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
 
             var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, dynParams, transaction, commandTimeout);
             return count > 0;
         }
 
-        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, T entityToDelete, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        /// <summary>
+        /// Deletes an entity from the database.
+        /// </summary>
+        /// <typeparam name="T">The type of the entity to be deleted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="entity">The entity object to be deleted.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        /// <returns>True if the entity was found and successfully deleted.</returns>
+        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
-            if (entityToDelete == null)
-                throw new ArgumentNullException(nameof(entityToDelete));
+            ValidateEntityForDelete(entity);
 
             var type = typeof(T);
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, entityToDelete, transaction, commandTimeout);
+            var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, entity, transaction, commandTimeout);
             return count > 0;
         }
 
-        public static async Task<bool> DeleteManyAsync<T>(this IDbConnection connection, IEnumerable<T> entitiesToDelete, 
+        /// <summary>
+        /// Deletes all entities of a given collection from the database.
+        /// </summary>
+        /// <typeparam name="T">The type of the entities to be deleted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="entities">The collection of entities to be deleted.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        /// <returns>True if all entities were found and successfully deleted.</returns>
+        public static async Task<bool> DeleteManyAsync<T>(this IDbConnection connection, IEnumerable<T> entities, 
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
-            if (entitiesToDelete == null)
-                throw new ArgumentNullException(nameof(entitiesToDelete));
+            if (entities == null)
+                throw new ArgumentNullException(nameof(entities));
 
-            if (!entitiesToDelete.Any()) return false;
+            if (!entities.Any()) return false;
 
             var type = typeof(T);
-
-            TypeHelper.IsCollection(ref type);
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, entitiesToDelete, transaction, commandTimeout);
-            return count > 0;
+            var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, entities, transaction, commandTimeout);
+            return count == entities.Count();
         }
 
-        public static async Task<long> DeleteAllAsync<T>(this IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        /// <summary>
+        /// Deletes all entities of a given type from the database.
+        /// </summary>
+        /// <typeparam name="T">The type of the entities to be deleted.</typeparam>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="transaction">The database transaction to be used in the operation.</param>
+        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
+        /// <returns>The number of rows affected by the operation.</returns>
+        public static async Task<long> DeleteAllAsync<T>(this IDbConnection connection, 
+            IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             var type = typeof(T);
 
