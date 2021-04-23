@@ -2,6 +2,13 @@
 
 A new set of tools and extensions for Dapper that provides CRUD operations for your entities.
 
+## Install
+
+Install it directly from Nuget package manager in visual studio.
+
+**Nuget Url**: 
+https://www.nuget.org/packages/Dapper.Apex/
+
 ## How does it work?
 
 Like Dapper does!
