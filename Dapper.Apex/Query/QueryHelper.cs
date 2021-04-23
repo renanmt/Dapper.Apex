@@ -8,6 +8,9 @@ using System.Text;
 
 namespace Dapper.Apex.Query
 {
+    /// <summary>
+    /// Collection of queries of a type.
+    /// </summary>
     public class TypeQueryInfo
     {
         public string SelectQuery { get; set; }
@@ -35,7 +38,13 @@ namespace Dapper.Apex.Query
         private const string DeleteTemplate = "delete from {0} where {1}";
         private const string DeleteAllTemplate = "delete from {0}";
 
+        /// <summary>
+        /// Cache of query information objects.
+        /// </summary>
         public static readonly ConcurrentDictionary<RuntimeTypeHandle, TypeQueryInfo> QueryInfos = new ConcurrentDictionary<RuntimeTypeHandle, TypeQueryInfo>();
+        /// <summary>
+        /// Cache of fields for personalized update queries.
+        /// </summary>
         public static readonly ConcurrentDictionary<string, string> UpdateFieldsQueryCache = new ConcurrentDictionary<string, string>();
 
         /// <summary>
@@ -75,10 +84,10 @@ namespace Dapper.Apex.Query
         };
 
         /// <summary>
-        /// 
+        /// Gets the surrogate key return query for a specific database.
         /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
+        /// <param name="connection">The connection object that represents the database.</param>
+        /// <returns>The surrogate key query.</returns>
         public static string GetSurrogateKeyReturnQuery(IDbConnection connection)
         {
             var sqlHelper = GetSqlHelper(connection);
@@ -86,6 +95,14 @@ namespace Dapper.Apex.Query
             return sqlHelper.GetSurrogateKeyReturnQuery();
         }
 
+        /// <summary>
+        /// Gets the insert query for multiple entities in one single statement.
+        /// </summary>
+        /// <param name="connection">A database connection object to represent the origin of the given type.</param>
+        /// <param name="typeInfo">The TypeInfo object containing all type required information.</param>
+        /// <param name="queryInfo">The TypeQueryInfo object containing all queries for the given type.</param>
+        /// <param name="entitiesCount">The amount of entities to be processed.</param>
+        /// <returns>The insert query for multiple entities.</returns>
         public static string GetInsertManyQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo, 
             int entitiesCount)
         {
@@ -111,12 +128,28 @@ namespace Dapper.Apex.Query
             return finalSql;
         }
 
+        /// <summary>
+        /// Gets the insert query for a given type.
+        /// </summary>
+        /// <param name="connection">A database connection object to represent the origin of the given type.</param>
+        /// <param name="typeInfo">The TypeInfo object containing all type required information.</param>
+        /// <param name="queryInfo">The TypeQueryInfo object containing all queries for the given type.</param>
+        /// <returns>The insert query.</returns>
         public static string GetInsertQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo)
         {
             var surrogateKeySql = typeInfo.KeyType == KeyType.Surrogate ? $"{GetSurrogateKeyReturnQuery(connection)};" : string.Empty;
             return $"{queryInfo.InsertQuery};{surrogateKeySql};";
         }
 
+        /// <summary>
+        /// Gets the personalized update query statement for specific fields.
+        /// </summary>
+        /// <param name="connection">A database connection object to represent the origin of the given type.</param>
+        /// <param name="typeInfo">The TypeInfo object containing all type required information.</param>
+        /// <param name="queryInfo">The TypeQueryInfo object containing all queries for the given type.</param>
+        /// <param name="fields">The fields to be used in the query assembly.</param>
+        /// <param name="exclude">True for exclusive, False for inclusive</param>
+        /// <returns>The personalized update query statement.</returns>
         public static string GetUpdateFieldsQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo, 
             IEnumerable<string> fields, bool exclude = false)
         {
@@ -142,6 +175,12 @@ namespace Dapper.Apex.Query
             return sql;
         }
 
+        /// <summary>
+        /// Gets a query parameter name for a given property.
+        /// </summary>
+        /// <param name="property">The property info.</param>
+        /// <param name="paramSufix">A suffix to be attached to the parameter name.</param>
+        /// <returns>Query parameter name.</returns>
         public static string GetParamName(PropertyInfo property, string paramSufix = "")
         {
             return $"@{property.Name}{paramSufix}";

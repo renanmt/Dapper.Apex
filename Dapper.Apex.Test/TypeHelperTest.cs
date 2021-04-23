@@ -145,46 +145,5 @@ namespace Dapper.Apex.Test
             var ex = Assert.Throws<DapperApexException>(action);
             Assert.Contains("has multiple [Key] attributes", ex.Message);
         }
-
-        [Fact(DisplayName = "Is Collection List")]
-        public void IsCollectionList()
-        {
-            var type = typeof(List<ModelX>);
-            var isCollection = TypeHelper.IsCollection(ref type);
-
-            Assert.True(isCollection);
-            Assert.Equal(typeof(ModelX), type);
-
-            var newType = typeof(List<ModelX>);
-            TypeHelper.IsCollection(ref newType);
-
-            Assert.Same(type, newType);
-        }
-
-        [Fact(DisplayName = "Is Collection Array")]
-        public void IsCollectionArray()
-        {
-            var type = typeof(ModelX[]);
-            var isCollection = TypeHelper.IsCollection(ref type);
-
-            Assert.True(isCollection);
-            Assert.Equal(typeof(ModelX), type);
-
-            var newType = typeof(ModelX[]);
-            TypeHelper.IsCollection(ref newType);
-
-            Assert.Same(type, newType);
-        }
-
-        [Fact(DisplayName = "Is Not Collection")]
-        public void IsNotCollection()
-        {
-            var type = typeof(ModelX);
-            var originalType = type;
-            var isCollection = TypeHelper.IsCollection(ref type);
-
-            Assert.False(isCollection);
-            Assert.Same(originalType, type);
-        }
     }
 }

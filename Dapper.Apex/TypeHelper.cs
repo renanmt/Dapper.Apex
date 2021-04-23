@@ -65,47 +65,6 @@ namespace Dapper.Apex
             return ProcessType(type);
         }
 
-        /// <summary>
-        /// Checks if a give type is a collection and replaces its element type if true.
-        /// </summary>
-        /// <param name="type">The given type to be checked if it's a collection. 
-        /// It will get replaced by the element type if the given type is a collection.</param>
-        /// <returns>True if type is a collection.</returns>
-        public static bool IsCollection(ref Type type)
-        {
-            if (!type.IsAssignableTo(typeof(IEnumerable))) return false;
-
-            if (ElementTypes.TryGetValue(type.TypeHandle, out var storedType))
-            {
-                type = storedType;
-                return true;
-            }
-
-            var inputType = type;
-
-            if (type.IsArray)
-            {
-                type = type.GetElementType();
-            }
-            else if (type.IsGenericType)
-            {
-                var typeInfo = type.GetTypeInfo();
-
-                if (typeInfo.ImplementedInterfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)) ||
-                    typeInfo.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    type = type.GetGenericArguments().FirstOrDefault();
-                }
-            }
-
-            if (type == null)
-                throw new DapperApexException("Unable to determine the element type of the collection.");
-
-            ElementTypes.TryAdd(inputType.TypeHandle, type);
-
-            return true;
-        }
-
         private static TypeInfo ProcessType(Type type)
         {
             var tableName = type.GetCustomAttribute<TableAttribute>(false)?.Name ?? type.Name;

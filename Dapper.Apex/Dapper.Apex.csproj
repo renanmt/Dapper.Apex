@@ -1,19 +1,43 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
 
-    <IsPackable>false</IsPackable>
+    <IsPackable>true</IsPackable>
 
     <Authors>Renan Tonheiro</Authors>
 
     <Company />
 
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <RepositoryUrl>https://github.com/renanmt/Dapper.Apex/</RepositoryUrl>
+
+    <RepositoryType>git</RepositoryType>
+
+    <PackageTags>orm;micro-orm;sql</PackageTags>
+
+    <Description>Dapper Apex is a set of tools and extensions for Dapper that provides CRUD operations for your entities.</Description>
+
+    <PackageIcon>icon.png</PackageIcon>
+
+    <PackageProjectUrl>https://github.com/renanmt/Dapper.Apex/</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

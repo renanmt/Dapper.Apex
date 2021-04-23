@@ -28,10 +28,11 @@ namespace Dapper.Apex
 
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
+            
+            var sql = QueryHelper.GetInsertQuery(connection, typeInfo, queryInfo);
 
             if (typeInfo.KeyType == KeyType.Surrogate)
             {
-                var sql = $"{queryInfo.InsertQuery};{QueryHelper.GetSurrogateKeyReturnQuery(connection)};";
                 var res = (await connection.QueryMultipleAsync(sql, entity, transaction, commandTimeout)).Read();
 
                 var id = res.First().id;
@@ -41,7 +42,7 @@ namespace Dapper.Apex
             }
             else
             {
-                await connection.ExecuteAsync(queryInfo.InsertQuery, entity, transaction, commandTimeout);
+                await connection.ExecuteAsync(sql, entity, transaction, commandTimeout);
             }
         }
 

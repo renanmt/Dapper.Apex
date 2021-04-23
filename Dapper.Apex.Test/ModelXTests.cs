@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using Xunit;
 using Dapper.Apex.Test.Models;
+using AutoFixture;
 
 namespace Dapper.Apex.Test
 {
@@ -218,6 +219,87 @@ namespace Dapper.Apex.Test
             Assert.Equal(0, entity2.Prop4);
         }
 
+        [Theory(DisplayName = "Update Entity Fields")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(2)]
+        public void UpdateEntityFields(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            Fixture fixture = new Fixture();
+            ModelX entity = fixture.Create<ModelX>();
+            entity.Prop2 = "DEFAULT VALUE";
+            entity.Id = 0;
+
+            var originalEntity = entity;
+            bool found = false;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+
+                connection.Insert(entity);
+
+                entity = connection.Get<ModelX>(entity.Id);
+                entity.Prop1 = "TARGET UPDATE";
+                entity.Prop3 = "TARGET UPDATE";
+
+                found = connection.UpdateFields(entity, new List<string>() { { "Prop3" } });
+
+                entity = connection.Get<ModelX>(entity.Id);
+
+                connection.Close();
+            }
+
+            Assert.True(found);
+            Assert.NotNull(entity);
+            Assert.NotSame(originalEntity, entity);
+            Assert.Equal(originalEntity.Prop1, entity.Prop1);
+            Assert.Equal(originalEntity.Prop2, entity.Prop2);
+            Assert.NotEqual(originalEntity.Prop3, entity.Prop3);
+            Assert.Equal("TARGET UPDATE", entity.Prop3);
+        }
+
+        [Theory(DisplayName = "Update Entity Except")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(2)]
+        public void UpdateEntityExcept(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            Fixture fixture = new Fixture();
+            ModelX entity = fixture.Create<ModelX>();
+            entity.Prop2 = "DEFAULT VALUE";
+            entity.Id = 0;
+
+            var originalEntity = entity;
+            bool found = false;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+
+                connection.Insert(entity);
+
+                entity = connection.Get<ModelX>(entity.Id);
+                entity.Prop1 = "TARGET UPDATE";
+                entity.Prop3 = "TARGET UPDATE";
+
+                found = connection.UpdateExcept(entity, new List<string>() { { "Prop1" } });
+
+                entity = connection.Get<ModelX>(entity.Id);
+
+                connection.Close();
+            }
+
+            Assert.True(found);
+            Assert.NotNull(entity);
+            Assert.NotSame(originalEntity, entity);
+            Assert.Equal(originalEntity.Prop1, entity.Prop1);
+            Assert.Equal(originalEntity.Prop2, entity.Prop2);
+            Assert.NotEqual(originalEntity.Prop3, entity.Prop3);
+            Assert.Equal("TARGET UPDATE", entity.Prop3);
+        }
 
         [Theory(DisplayName = "Insert Entity")]
         [ClassData(typeof(DbConnectionGenerator))]
@@ -237,11 +319,13 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
 
+                var all = connection.GetAll<ModelX>();
+                var id = all.Select(e => e.Id).Max() + 1;
                 connection.Insert(entity);
 
-                Assert.Equal(3, entity.Id);
+                Assert.Equal(id, entity.Id);
 
-                entity = connection.Get<ModelX>(3);
+                entity = connection.Get<ModelX>(id);
 
                 Assert.NotNull(entity);
                 Assert.Equal("ENTITY 3", entity.Prop1);

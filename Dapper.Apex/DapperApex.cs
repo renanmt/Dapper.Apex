@@ -11,36 +11,66 @@ using System.Runtime.CompilerServices;
 namespace Dapper.Apex
 {
     /// <summary>
-    /// Extension methods for Dapper
+    /// Apex extension methods for Dapper.
     /// </summary>
     public static partial class DapperApex
     {
-        public static void Initialize(IEnumerable<Type> modelTypes, IDbConnection dbConnection = null)
+        /// <summary>
+        /// Initialize the type and query caches for a list of entity types.
+        /// </summary>
+        /// <remarks>
+        /// Initializing your types before usage frees you from the overhead of processing types during the first operations and also provides you
+        /// quick validation of types at runtime.
+        /// </remarks>
+        /// <param name="entityTypes">The list of entity types.</param>
+        /// <param name="connection">A database connection object to represent the origin of the given entity types.</param>
+        public static void Initialize(IEnumerable<Type> entityTypes, IDbConnection connection = null)
         {
-            var createQueries = dbConnection != null;
+            var createQueries = connection != null;
 
-            foreach (var type in modelTypes)
+            foreach (var type in entityTypes)
             {
                 var typeInfo = TypeHelper.GetTypeInfo(type);
 
                 if (createQueries)
-                    QueryHelper.GetQueryInfo(dbConnection, typeInfo);
+                    QueryHelper.GetQueryInfo(connection, typeInfo);
             }
         }
 
-        public static void Initialize(Assembly assembly, string modelsNamespace, IDbConnection dbConnection = null)
+        /// <summary>
+        /// Initialize the type and query caches for a given assembly and namespace.
+        /// </summary>
+        /// <remarks>
+        /// Initializing your types before usage frees you from the overhead of processing types during the first operations and also provides you
+        /// quick validation of types at runtime.
+        /// </remarks>
+        /// <param name="assembly">The assembly containing the entity types.</param>
+        /// <param name="entitiesNamespace">The namespace containing the entity types.</param>
+        /// <param name="connection">A database connection object to represent the origin of the given entity types.</param>
+        public static void Initialize(Assembly assembly, string entitiesNamespace, IDbConnection connection = null)
         {
-            var types = GetNamespaceClassTypes(assembly, modelsNamespace);
+            var types = GetNamespaceClassTypes(assembly, entitiesNamespace);
 
-            Initialize(types, dbConnection);
+            Initialize(types, connection);
         }
 
-        public static void Initialize(Assembly assembly, string modelsNamespace, Type baseType, IDbConnection dbConnection = null)
+        /// <summary>
+        /// Initialize the type and query caches for a given assembly and namespace and a base type.
+        /// </summary>
+        /// <remarks>
+        /// Initializing your types before usage frees you from the overhead of processing types of during first operations and also provides you
+        /// quick validation of types at runtime.
+        /// </remarks>
+        /// <param name="assembly">The assembly containing the entity types.</param>
+        /// <param name="entitiesNamespace">The namespace containing the entity types.</param>
+        /// <param name="baseType">The common base type for entity types.</param>
+        /// <param name="connection">A database connection object to represent the origin of the given entity types.</param>
+        public static void Initialize(Assembly assembly, string entitiesNamespace, Type baseType, IDbConnection connection = null)
         {
-            var types = GetNamespaceClassTypes(assembly, modelsNamespace)
-                .Where(type => type.IsAssignableTo(baseType));
+            var types = GetNamespaceClassTypes(assembly, entitiesNamespace)
+                .Where(type => baseType.IsAssignableFrom(type));
 
-            Initialize(types, dbConnection);
+            Initialize(types, connection);
         }
 
         private static IEnumerable<Type> GetNamespaceClassTypes(Assembly assembly, string modelsNamespace)
