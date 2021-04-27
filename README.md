@@ -320,10 +320,10 @@ Use it when you wish to update the entire entity except for certain fields.
 
 ```csharp
 var fieldsToIgnore = new List<string>() { { "Field1" }, { "Field2" } };
-connection.UpdateFields(entity, fieldsToIgnore);
+connection.UpdateExcept(entity, fieldsToIgnore);
 
 // Async
-await connection.UpdateFieldsAsync(entity, fieldsToIgnore);
+await connection.UpdateExceptAsync(entity, fieldsToIgnore);
 ```
 
 ### DELETE methods
