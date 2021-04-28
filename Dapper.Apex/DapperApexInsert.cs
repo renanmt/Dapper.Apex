@@ -33,12 +33,14 @@ namespace Dapper.Apex
 
             if (typeInfo.KeyType == KeyType.Surrogate)
             {
-                var res = connection.QueryMultiple(sql, entity, transaction, commandTimeout).Read();
+                using (var reader = connection.QueryMultiple(sql, entity, transaction, commandTimeout))
+                {
+                    var res = reader.Read();
+                    var id = res.First().id;
 
-                var id = res.First().id;
-
-                var keyProperty = typeInfo.PrimaryKeyProperties.First();
-                keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
+                    var keyProperty = typeInfo.PrimaryKeyProperties.First();
+                    keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
+                }
             }
             else
             {
@@ -94,18 +96,19 @@ namespace Dapper.Apex
 
             if (typeInfo.KeyType == KeyType.Surrogate)
             {
-                var dbRes = connection.QueryMultiple(sql, dynParams, transaction, commandTimeout);
-
-                var keyProperty = typeInfo.PrimaryKeyProperties.First();
-
-                foreach (var entity in entitiesToInsert)
+                using (var reader = connection.QueryMultiple(sql, dynParams, transaction, commandTimeout))
                 {
-                    var res = dbRes.Read();
-                    var id = res.First().id;
-                    keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
-                }
+                    var keyProperty = typeInfo.PrimaryKeyProperties.First();
+                    
+                    foreach (var entity in entitiesToInsert)
+                    {
+                        var res = reader.Read();
+                        var id = res.First().id;
+                        keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
+                    }
 
-                return entitiesToInsert.Count();
+                    return entitiesToInsert.Count();
+                }
             }
             else
             {
@@ -124,14 +127,15 @@ namespace Dapper.Apex
             {
                 foreach (var entity in entitiesToInsert)
                 {
-                    var dbRes = connection.QueryMultiple(sql, entity, transaction, commandTimeout);
+                    using (var reader = connection.QueryMultiple(sql, entity, transaction, commandTimeout))
+                    {
+                        var keyProperty = typeInfo.PrimaryKeyProperties.First();
 
-                    var keyProperty = typeInfo.PrimaryKeyProperties.First();
+                        var res = reader.Read();
+                        var id = res.First().id;
 
-                    var res = dbRes.Read();
-                    var id = res.First().id;
-
-                    keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
+                        keyProperty.SetValue(entity, Convert.ChangeType(id, keyProperty.PropertyType), null);
+                    }
                 }
 
                 return entitiesToInsert.Count();
