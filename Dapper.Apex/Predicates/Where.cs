@@ -31,14 +31,14 @@ namespace Dapper.Apex
 
     public static class Where<T> where T: class
     {
-        public static IWhere<T> With(Expression<Func<T, object>> expression, CompareOperator clauseOperator, object value)
+        public static IWhere<T> Add(Expression<Func<T, object>> expression, CompareOperator clauseOperator, object value)
         {
             var where = new WhereClause<T>();
             where.Parts.Add(new Condition(expression.GetPropertyName(), clauseOperator, value));
             return where;
         }
 
-        public static IWhere<T> WithGroup()
+        public static IWhere<T> AddGroup()
         {
             var where = new WhereClause<T>();
             where.Parts.Add(GroupBegin.Default);
@@ -124,6 +124,7 @@ namespace Dapper.Apex
                 throw new DapperApexException($"Invalid closing group at step {Parts.Count + 1}.");
 
             this.Parts.Add(GroupEnd.Default);
+            _unclosedGroups--;
             return this;
         }
 

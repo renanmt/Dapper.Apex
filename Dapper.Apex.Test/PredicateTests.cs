@@ -22,7 +22,7 @@ namespace Dapper.Apex.Test
         {
             var where =
                 Where<ModelX>
-                    .With((m) => m.Prop1 == "Test", CompareOperator.Equal, "Test")
+                    .Add((m) => m.Prop1, CompareOperator.Equal, "Test")
                     .AndGroup()
                         .AddGroup()
                             .Add(m => m.Prop1, CompareOperator.Equal, "XXX")
@@ -36,6 +36,9 @@ namespace Dapper.Apex.Test
                         .Or(m => m.Prop4, CompareOperator.GreatOrEqual, 10)
                         .EndGroup()
                     .Build(connection);
+
+            bool exist = connection.Exists<Model>(key);
+            connection.Upsert()
 
             Assert.NotNull(where);
 
