@@ -183,7 +183,12 @@ namespace Dapper.Apex.Query
         /// <returns>Query parameter name.</returns>
         public static string GetParamName(PropertyInfo property, string paramSufix = "")
         {
-            return $"@{property.Name}{paramSufix}";
+            return GetParamName(property.Name, paramSufix);
+        }
+
+        internal static string GetParamName(string propertyName, string paramSufix = "")
+        {
+            return $"@{propertyName}{paramSufix}";
         }
 
         private static TypeQueryInfo CreateQueryInfo(IDbConnection connection, TypeInfo typeInfo)
@@ -238,7 +243,7 @@ namespace Dapper.Apex.Query
             return typeQueryInfo;
         }
 
-        private static ISqlDbHelper GetSqlHelper(IDbConnection connection)
+        internal static ISqlDbHelper GetSqlHelper(IDbConnection connection)
         {
             var connectionName = connection.GetType().Name.ToLower();
 
@@ -249,9 +254,9 @@ namespace Dapper.Apex.Query
             return sqlHelper;
         }
 
-        private static string GetColumnEqualsToParam(string columnName, ISqlDbHelper sqlHelper)
+        internal static string GetColumnEqualsToParam(string columnName, ISqlDbHelper sqlHelper, string paramSufix = "")
         {
-            return string.Format(ColumnEqualsToParamTemplate, sqlHelper.FormatDbEntityName(columnName), columnName);
+            return string.Format(ColumnEqualsToParamTemplate, sqlHelper.FormatDbEntityName(columnName), GetParamName(columnName, paramSufix));
         }
 
         private static void GenerateColumnSequence(StringBuilder sb, IEnumerable<PropertyInfo> properties, ISqlDbHelper sqlHelper, 
