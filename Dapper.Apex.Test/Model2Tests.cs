@@ -35,6 +35,286 @@ namespace Dapper.Apex.Test
             Assert.Equal(2, count);
         }
 
+        [Theory(DisplayName = "Exists")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void Exists(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(1);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExists(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = true;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(-1);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = ValueTuple.Create(1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new int[] { 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<int> { 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, int>();
+            key.Add("Model2Id", 1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Model2Id = 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Model2 { Model2Id = 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = true;
+            var key = ValueTuple.Create(-1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "NotExists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new int[] { -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<int> { -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, int>();
+            key.Add("Model2Id", -1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Model2Id = -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Model2 { Model2Id = -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
         [Theory(DisplayName = "Get Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
         [TestPriority(1)]

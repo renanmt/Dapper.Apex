@@ -1,12 +1,9 @@
-﻿using Dapper;
-using Dapper.Apex.Query;
+﻿using Dapper.Apex.Query;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Dapper.Apex
@@ -18,11 +15,11 @@ namespace Dapper.Apex
         /// </summary>
         /// <typeparam name="T">The type of the entity to be deleted.</typeparam>
         /// <param name="connection">The database connection.</param>
-        /// <param name="key">The Tuple representing the entity key.</param>
+        /// <param name="key">The tuple, value, collection, dictionary, expando object or object representing the entity key.</param>
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>True if the entity was found and successfully deleted.</returns>
-        public static bool Delete<T>(this IDbConnection connection, ITuple key, 
+        public static bool Delete<T>(this IDbConnection connection, object key,
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             if (key == null)
@@ -33,7 +30,7 @@ namespace Dapper.Apex
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
+            DynamicParameters dynParams = GetParameters(type, key, typeInfo.PrimaryKeyProperties);
 
             var count = connection.Execute(queryInfo.DeleteQuery, dynParams, transaction, commandTimeout);
             return count > 0;
@@ -48,7 +45,7 @@ namespace Dapper.Apex
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>True if the entity was found and successfully deleted.</returns>
-        public static bool Delete<T>(this IDbConnection connection, T entity, 
+        public static bool Delete<T>(this IDbConnection connection, T entity,
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             ValidateEntityForDelete(entity);
@@ -71,7 +68,7 @@ namespace Dapper.Apex
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>True if all entities were found and successfully deleted.</returns>
-        public static bool DeleteMany<T>(this IDbConnection connection, IEnumerable<T> entities, 
+        public static bool DeleteMany<T>(this IDbConnection connection, IEnumerable<T> entities,
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             if (entities == null)

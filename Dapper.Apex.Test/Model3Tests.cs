@@ -37,6 +37,249 @@ namespace Dapper.Apex.Test
             Assert.Equal(2, count);
         }
 
+        [Theory(DisplayName = "Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(Entity1Id);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Guid[] { Entity1Id.Item1, Entity1Id.Item2 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<Guid> { Entity1Id.Item1, Entity1Id.Item2 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, Guid>();
+            key.Add("Id1", Entity1Id.Item1);
+            key.Add("Id2", Entity1Id.Item2);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Id1 = Entity1Id.Item1, Id2 = Entity1Id.Item2 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Model3 { Id1 = Entity1Id.Item1, Id2 = Entity1Id.Item2 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = true;
+            var key = ValueTuple.Create(Guid.NewGuid(), Guid.NewGuid());
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "NotExists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Guid[] { Guid.NewGuid(), Guid.NewGuid() };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, Guid>();
+            key.Add("Id1", Guid.NewGuid());
+            key.Add("Id2", Guid.NewGuid());
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Id1 = Guid.NewGuid(), Id2 = Guid.NewGuid() };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void NotExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Model3 { Id1 = Guid.NewGuid(), Id2 = Guid.NewGuid() };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model3>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
         [Theory(DisplayName = "Get Entity by Id")]
         [ClassData(typeof(DbConnectionGenerator))]
         [TestPriority(1)]

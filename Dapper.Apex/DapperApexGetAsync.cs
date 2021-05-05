@@ -30,7 +30,7 @@ namespace Dapper.Apex
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
+            DynamicParameters dynParams = GetParameters(type, key, typeInfo.PrimaryKeyProperties);
 
             T obj = (
                 await connection.QueryAsync<T>(queryInfo.SelectQuery, dynParams, transaction, commandTimeout: commandTimeout)

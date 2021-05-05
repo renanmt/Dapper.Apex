@@ -16,11 +16,12 @@ namespace Dapper.Apex
         /// </summary>
         /// <typeparam name="T">The type of the entity to be retrieved.</typeparam>
         /// <param name="connection">The database connection.</param>
-        /// <param name="key">The value, object or Tuple representing the entity key.</param>
+        /// <param name="key">The tuple, value, collection, dictionary, expando object or object representing the entity key.</param>
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>The entity object retrieved from the database.</returns>
-        public static T Get<T>(this IDbConnection connection, dynamic key, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        public static T Get<T>(this IDbConnection connection, object key, 
+            IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -29,10 +30,8 @@ namespace Dapper.Apex
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
-
+            var dynParams = GetParameters(type, key, typeInfo.PrimaryKeyProperties);
             T obj = connection.Query<T>(queryInfo.SelectQuery, dynParams, transaction, commandTimeout: commandTimeout).FirstOrDefault();
-
             return obj;
         }
 
@@ -44,7 +43,8 @@ namespace Dapper.Apex
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>A collection of entity objects retrieved from the database.</returns>
-        public static IEnumerable<T> GetAll<T>(this IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
+        public static IEnumerable<T> GetAll<T>(this IDbConnection connection, 
+            IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             var typeInfo = TypeHelper.GetTypeInfo(typeof(T));
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
