@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 - Methods Count and CountAsync (Replacing GetCount and GetCountAsync)
 - Support for more key object types in Get, Delete and Exists methods.
 ### Removed
-- Methods GetCount and GetCountAsync (Replaced by Count adn CountAsync)
+- Methods GetCount and GetCountAsync (Replaced by Count and CountAsync)
 
 ## [1.0.1] - 2021-04-27
 ### Fixed
