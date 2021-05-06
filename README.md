@@ -29,8 +29,6 @@ Databases:
 
 ## Contents
 
-[ToC]
-
 - [Methods](#methods)
 - [DapperApex class](#dapperapex-class)
   - [Initialize](#initialize)
