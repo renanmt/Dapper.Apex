@@ -30,7 +30,7 @@ namespace Dapper.Apex
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
+            DynamicParameters dynParams = GetParameters(type, key, typeInfo.PrimaryKeyProperties);
 
             T obj = (
                 await connection.QueryAsync<T>(queryInfo.SelectQuery, dynParams, transaction, commandTimeout: commandTimeout)
@@ -56,24 +56,6 @@ namespace Dapper.Apex
             var objects = await connection.QueryAsync<T>(queryInfo.SelectAllQuery, transaction: transaction, commandTimeout: commandTimeout);
 
             return objects;
-        }
-
-        /// <summary>
-        /// Retrieves the total count of entities of a given type in the database.
-        /// </summary>
-        /// <typeparam name="T">The type of the entities to be retrieved.</typeparam>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="transaction">The database transaction to be used in the operation.</param>
-        /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
-        /// <returns>The total count of entities.</returns>
-        public static async Task<long> GetCountAsync<T>(this IDbConnection connection, IDbTransaction transaction = null, int? commandTimeout = null) where T : class
-        {
-            var typeInfo = TypeHelper.GetTypeInfo(typeof(T));
-            var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
-
-            var count = await connection.ExecuteScalarAsync<long>(queryInfo.SelectCountQuery, transaction: transaction, commandTimeout: commandTimeout);
-
-            return count;
         }
     }
 }

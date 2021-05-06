@@ -23,13 +23,16 @@
 
     <PackageProjectUrl>https://github.com/renanmt/Dapper.Apex/</PackageProjectUrl>
 
-    <Version>1.0.1</Version>
+    <Version>2.0.0</Version>
 
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
 
-    <FileVersion>1.0.1.0</FileVersion>
+    <FileVersion>2.0.0.0</FileVersion>
 
-    <PackageReleaseNotes>- Correctly disposing GridReader</PackageReleaseNotes>
+    <PackageReleaseNotes>- Added methods Exists and ExistsAsync, to check for existence of an entity in the database.
+- Added methods Count and CountAsync (Replacing GetCount and GetCountAsync)
+- Support for more key object types in Get, Delete and Exists methods.
+- Removed methods GetCount and GetCountAsync (Replaced by Count adn CountAsync)</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

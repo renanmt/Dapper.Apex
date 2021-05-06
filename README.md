@@ -1,4 +1,4 @@
-# Dapper.Apex
+# Dapper.Apex ![Dapper.Apex](icon.png)
 
 A new set of tools and extensions for Dapper that provides CRUD operations for your entities.
 
@@ -11,9 +11,9 @@ https://www.nuget.org/packages/Dapper.Apex/
 
 ## How does it work?
 
-Like Dapper does!
+**Like Dapper does!**
 
-Simply add a refence to Dapper.Apex namespace in your repository classes and you get access to its methods via the database connection.
+Simply add a refence to Dapper.Apex namespace in your repository classes and you get access to its extension methods via the database connection.
 
 ## Frameworks & Databases
 
@@ -27,7 +27,46 @@ Databases:
 
 > _More databases can be added to QueryHelper.SupportedDatabaseHelpers_
 
-## Methods
+## Contents
+
+- [Methods](#methods)
+- [DapperApex class](#dapperapex-class)
+  - [Initialize](#initialize)
+- [Entity Attributes](#entity-attributes)
+  - [Table Attribute](#table-attribute)
+  - [Key Attribute](#key-attribute)
+  - [ExplicitKey Attribute](#explicit-key-attribute)
+  - [ReadOnly Attribute](#readonly-attribute)
+  - [Computed Attribute](#computed-attribute)
+- [Methods](#methods)
+  - [GET methods](#get-methods)
+    - [Get](#get)
+      - [Get with single key value](#get-single-key)
+      - [Get with tuple as key](#get-tuple)
+      - [Get with array as key](#get-array)
+      - [Get with collection as key](#get-collection)
+      - [Get with Dictionary as key](#get-dictionary)
+      - [Get with ExpandoObject as key](#get-expando)
+      - [Get with object as key](#get-object)
+    - [Get All](#get-all)
+  - [INSERT methods](#insert-methods)
+    - [Single Insert](#insert)
+    - [Insert Many](#insert-many)
+  - [UPDATE methods](#update-methods)
+    - [Single Update](#update)
+    - [Update Many](#update-many)
+    - [Update Fields](#update-fields)
+    - [Update Except](#update-except)
+  - [DELETE methods](#delete-methods)
+    - [Delete with a key](#delete-key)
+    - [Single Delete](#delete)
+    - [Delete Many](#delete-many)
+  - [COUNT](#count)
+  - [EXISTS](#exists)
+- [Insert Operation Control](#insert-operation-control)
+- [Why another library?](#why-another-library)
+
+## Methods {#methods}
 
 Summary:
 
@@ -35,7 +74,6 @@ Summary:
 | --------- | ------------- | ----------------- |
 | GET       | Get           | GetAsync          |
 | GET       | GetAll        | GetAllAsync       |
-| GET       | GetCount      | GetCountAsync     |
 | INSERT    | Insert        | InsertAsync       |
 | INSERT    | InsertMany    | InsertManyAsync   |
 | UPDATE    | Update        | UpdateAsync       |
@@ -45,10 +83,12 @@ Summary:
 | DELETE    | Delete        | DeleteAsync       |
 | DELETE    | DeleteMany    | DeleteManyAsync   |
 | DELETE    | DeleteAll     | DeleteAllAsync    |
+| COUNT     | Count         | CountAsync        |
+| EXISTS    | Exists        | ExistsAsync       |
 
-## DapperApex class
+## DapperApex class {#dapperapex-class}
 
-### Initialize
+### Initialize {#initialize}
 
 The DapperApex class provides a special method that allows you to initialize all property information and query caches.
 
@@ -68,11 +108,11 @@ DapperApex.Initialize(assembly, namespace, connection);
 DapperApex.Initialize(assembly, namespace, typeof(BaseEntity), connection);
 ```
 
-## Entity Attributes
+## Entity Attributes {#entity-attributes}
 
 Entity attributes are needed in some cases so Dapper.Apex can automatically create your queries.
 
-### Table attribute
+### Table Attribute {#table-attribute}
 
 The Table attribue should be used when you need to define a specific table name for your entity. 
 
@@ -85,7 +125,7 @@ class Entity {
 }
 ```
 
-### Key attribute
+### Key Attribute {#key-attribute}
 
 The **Key** attribute is used to tell Dapper.Apex that a specific property is a **surrogate/artificial/db generated** key.
 
@@ -115,7 +155,7 @@ class Entity {
 }
 ```
 
-### ExplicitKey attribute
+### ExplicitKey Attribute {#explicit-key-attribute}
 
 The **ExplicitKey** attribute is used to tell Dapper.Apex that specific property is a **natural/composite** key.
 
@@ -139,7 +179,7 @@ class Entity {
 }
 ```
 
-### ReadOnly attribute
+### ReadOnly Attribute {#readonly-attribute}
 
 The **ReadOnly** attribute defines that a specific property must used only for data retrieval methods but ignored for data writing methods.
 
@@ -152,7 +192,7 @@ class Entity {
 }
 ```
 
-### Computed attribute
+### Computed Attribute {#computed-attribute}
 
 The **Computed** attribute defines that a specific property will be completly ignored for all Dapper.Apex methods.
 
@@ -165,42 +205,39 @@ class Entity {
 }
 ```
 
-### GET methods
+## Methods {#methods}
 
-#### Get with tuple as key
+### GET methods {#get-methods}
 
-You can use a Tuple to pass key values in the order they appear in your Entity class.
+#### Get {#get}
 
-```csharp
-class Entity {
-    [ExplicitKey]
-    public int NumberId { get; get; }
-    [ExplicitKey]
-    public string TextId { get; get; }
-    ...
-}
+The Get method can be used with many different types of key objects to retrieve your entities.
 
-var tuple = ValueTuple.Create(123, "key");
-var entity = connection.Get<Entity>(tuple);
+Currently supported: single value types, tuples, arrays, collections, dictionaries, ExpandoObject, 
+annonymous objects or any other object containing properties with the same names of your entity keys.
 
-// Async
-var entity = await connection.GetAsync<Entity>(tuple);
-```
 
-#### Get with single key value
+##### Get with single key value {#get-single-key}
 
 You can use a single value if your Entity class has a single key.
 
 ```csharp
+class Entity {
+    public int Id { get; get; }
+    ...
+}
+
 var entity = connection.Get<Entity>(123);
 
 // Async
 var entity = await connection.GetAsync<Entity>(123);
 ```
 
-#### Get with object as key
+##### Get with tuple as key {#get-tuple}
 
-You can use any object that has properties with same of the keys in your Entity class.
+You can use a tuple as a key to retrieve your entities.
+
+The values must appear in the tuple in the same order they appear in your entity model.
 
 ```csharp
 class Entity {
@@ -211,19 +248,136 @@ class Entity {
     ...
 }
 
-var key = new Entity() { NumberId = 123, TextId = "key" };
-var entity = connection.Get(key);
-
-// Annonymous objects also work!
-
-var key = new { NumberId = 123, TextId = "key" };
+var key = ValueTuple.Create(123, "key");
 var entity = connection.Get<Entity>(key);
 
 // Async
 var entity = await connection.GetAsync<Entity>(key);
 ```
 
-#### Get All
+##### Get with array as key {#get-array}
+
+You can use an array as a key to retrieve your entities.
+
+The values must appear in the array in the same order they appear in your entity model.
+
+```csharp
+class Entity {
+    [ExplicitKey]
+    public int NumberId { get; get; }
+    [ExplicitKey]
+    public string TextId { get; get; }
+    ...
+}
+
+var key = new object[] { 123, "key" };
+var entity = connection.Get<Entity>(key);
+
+// Async
+var entity = await connection.GetAsync<Entity>(key);
+```
+
+##### Get with collection as key {#get-collection}
+
+You can use a collection of single items that implements IEnumerable as a key to retrieve your entities.
+
+The values must appear in the collection in the same order they appear in your entity model.
+
+```csharp
+class Entity {
+    [ExplicitKey]
+    public int NumberId { get; get; }
+    [ExplicitKey]
+    public string TextId { get; get; }
+    ...
+}
+
+var key = new List<object>() { 123, "key" };
+var entity = connection.Get<Entity>(key);
+
+// Async
+var entity = await connection.GetAsync<Entity>(key);
+```
+
+##### Get with Dictionary as key {#get-dictionary}
+
+You can use a dictionary as a key to retrieve your entities. 
+
+The dictionary has to contain keys with the same name of your entity keys.
+
+```csharp
+class Entity {
+    [ExplicitKey]
+    public int NumberId { get; get; }
+    [ExplicitKey]
+    public string TextId { get; get; }
+    ...
+}
+
+var key = new Dictionary<string, object>();
+key.Add("NumberId", 123);
+key.Add("TextId", "key");
+var entity = connection.Get<Entity>(key);
+
+// Async
+var entity = await connection.GetAsync<Entity>(key);
+```
+
+##### Get with ExpandoObject as key {#get-expando}
+
+You can use an ExpandoObject as a key to retrieve your entities. 
+
+The ExpandoObject has to contain keys with the same name of your entity keys.
+
+```csharp
+class Entity {
+    [ExplicitKey]
+    public int NumberId { get; get; }
+    [ExplicitKey]
+    public string TextId { get; get; }
+    ...
+}
+
+dynamic key = new ExpandoObject();
+key.NumberId = 123;
+key.TextId = "key";
+var entity = connection.Get<Entity>(key as ExpandoObject);
+
+
+// Async
+var entity = await connection.GetAsync<Entity>(key);
+```
+
+##### Get with object as key {#get-object}
+
+You can use any object that has properties with the same name of the keys in your Entity class.
+
+```csharp
+class Entity {
+    [ExplicitKey]
+    public int NumberId { get; get; }
+    [ExplicitKey]
+    public string TextId { get; get; }
+    ...
+}
+
+//
+// Anonymous Object
+//
+var key = new { NumerId = 123, TextId = "key" };
+var entity = connection.Get<Entity>(key);
+
+//
+// Entity / any other object
+//
+var key = new Entity() { NumerId = 123, TextId = "key" };
+var entity = connection.Get(key);
+
+// Async
+var entity = await connection.GetAsync<Entity>(key);
+```
+
+#### Get All {#get-all}
 
 Gets all records of a specific entity.
 
@@ -234,20 +388,9 @@ var entities = connection.GetAll<Entity>(key);
 var entities = await connection.GetAllAsync<Entity>(key);
 ```
 
-#### Get Count
+### INSERT methods {#insert-methods}
 
-Gets the total count of records of a specific entity.
-
-```csharp
-var count = connection.GetCount<Entity>();
-
-// Async
-var count = await connection.GetCountAsync<Entity>();
-```
-
-### INSERT methods
-
-#### Single Insert
+#### Single Insert {#insert}
 
 Use it when you need to insert a single entity object.
 
@@ -262,7 +405,7 @@ connection.Insert(entity);
 connection.InsertAsync(entity);
 ```
 
-#### Insert Many
+#### Insert Many {#insert-many}
 
 Use it to easily insert several entity objects with a single method call.<br>
 Works with any collections of objects.
@@ -277,20 +420,22 @@ connection.InsertMany(entityList);
 connection.InsertManyAsync(entityList);
 ```
 
-### UPDATE methods
+### UPDATE methods {#update-methods}
 
-#### Single Update
+#### Single Update {#update}
 
 Use it when you need to update a single entity object.
 
+`Update` will return `true` if the entity was found and successfully updated.
+
 ```csharp
-connection.Update(entity);
+var updated = connection.Update(entity);
 
 // Async
-await connection.UpdateAsync(entity);
+var updated = await connection.UpdateAsync(entity);
 ```
 
-#### Update Many
+#### Update Many {#update-many}
 
 Use it to easily update several entity objects with a single method call.<br>
 Works with any collections of objects.
@@ -302,35 +447,45 @@ connection.UpdateMany(entityList);
 await connection.UpdateManyAsync(entityList);
 ```
 
-#### Update Fields
+#### Update Fields {#update-fields}
 
 Use it when you wish to update only specific fields of the entity.
 
+`UpdateFields` will return `true` if the entity was found and successfully deleted.
+
 ```csharp
 var fieldsToUpdate = new List<string>() { { "Field1" }, { "Field2" } };
-connection.UpdateFields(entity, fieldsToUpdate);
+var updated = connection.UpdateFields(entity, fieldsToUpdate);
 
 // Async
 await connection.UpdateFieldsAsync(entity, fieldsToUpdate);
 ```
 
-#### Update Except
+#### Update Except {#update-except}
 
 Use it when you wish to update the entire entity except for certain fields.
 
+`UpdateExcept` will return `true` if the entity was found and successfully deleted.
+
 ```csharp
 var fieldsToIgnore = new List<string>() { { "Field1" }, { "Field2" } };
-connection.UpdateExcept(entity, fieldsToIgnore);
+var updated = connection.UpdateExcept(entity, fieldsToIgnore);
 
 // Async
-await connection.UpdateExceptAsync(entity, fieldsToIgnore);
+var updated = await connection.UpdateExceptAsync(entity, fieldsToIgnore);
 ```
 
-### DELETE methods
+### DELETE methods {#delete-methods}
 
-#### Delete with tuple as key
+#### Delete with a key {#delete-key}
 
-You can use a Tuple to pass key values in the order they appear in your Entity class.
+Like [Get](#get-methods) methods, you can use lots of different types of object as a key to fetch you entities.
+
+[Single values](#get-single-key), [Tuples](#get-tuple), [Arrays](#get-array), [Collections](#get-collection), 
+[Dictionaries](#get-dictionary), [ExpandoObject](#get-expando), [Objects in general](#get-object) are all accepted 
+as key parameters.
+
+Delete will return `true` if the entity was found and successfully deleted.
 
 ```csharp
 class Entity {
@@ -341,48 +496,78 @@ class Entity {
     ...
 }
 
-var tuple = ValueTuple.Create(123, "key");
-connection.Delete<Entity>(tuple);
+var key = ValueTuple.Create(123, "key");
+var deleted = connection.Delete<Entity>(key);
 
 // Async
-await connection.DeleteAsync<Entity>(tuple);
+var deleted = await connection.DeleteAsync<Entity>(tuple);
 ```
 
-#### Single Delete
+#### Single Delete {#delete}
 
 Use it to delete a single entity object from the database.
 
+Delete will return `true` if the entity was found and successfully deleted.
+
 ```csharp
-connection.Delete(entity);
+var deleted = connection.Delete(entity);
 
 // Async
-await connection.DeleteAsync(entity);
+var deleted = await connection.DeleteAsync(entity);
 ```
 
-#### Delete Many
+#### Delete Many {#delete-many}
 
 Use it to easily delete several entity objects with a single method call.<br>
 Works with any collections of objects.
 
+Returns `true` if all entities where found and successfully deleted.
+
 ```csharp
-connection.DeleteMany(entityList);
+var deleted = connection.DeleteMany(entityList);
 
 // Async
-await connection.DeleteManyAsync(entityList);
+var deleted = await connection.DeleteManyAsync(entityList);
 ```
 
-#### Delete All
+#### Delete All {#delete-all}
 
 Deletes all records of a specific entity.
 
+Returns the total number of deleted records.
+
 ```csharp
-connection.DeleteAll<Entity>();
+var deletedCount = connection.DeleteAll<Entity>();
 
 // Async
-await connection.DeleteAllAsync<Entity>();
+var deletedCount = await connection.DeleteAllAsync<Entity>();
 ```
 
-### Insert Operation control
+### COUNT {#count}
+
+Retrieves the total number of records of a specific entity.
+
+```csharp
+var count = connection.Count<Entity>();
+
+// Async
+var count = await connection.CountAsync<Entity>();
+```
+
+### EXISTS {#exists}
+
+Checks if an entity exists in the database.
+
+Returns `true` if the entity is found.
+
+```csharp
+var exists = connection.Exists<Entity>();
+
+// Async
+var exists = await connection.ExistsAsync<Entity>();
+```
+
+## Insert Operation control {#insert-operation-control}
 
 Depending on your needs, you may want to choose between sending all the insert operations in a single SQL statement or do inserts one by one.
 
@@ -402,7 +587,7 @@ connection.InsertMany(entityList, operationMode: OperationMode.SingleShot);
 connection.InsertMany(entityList, operationMode: OperationMode.OneByOne);
 ```
 
-## Why another library?
+## Why another library? {#why-another-library}
 
 > **TLDR:** I was bored :unamused: and wanted to build something useful :smirk:.
 

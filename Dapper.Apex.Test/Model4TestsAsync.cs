@@ -27,11 +27,291 @@ namespace Dapper.Apex.Test
             using (var connection = dbConnection)
             {
                 connection.Open();
-                count = await connection.GetCountAsync<Model4>();
+                count = await connection.CountAsync<Model4>();
                 connection.Close();
             }
 
             Assert.Equal(2, count);
+        }
+
+        [Theory(DisplayName = "Exists")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task Exists(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(1);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExists(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = true;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(-1);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = ValueTuple.Create(1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new int[] { 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<int> { 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, int>();
+            key.Add("Id", 1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Id = 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task ExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Model4 { Id = 1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Tuple Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsTuple(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = true;
+            var key = ValueTuple.Create(-1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "NotExists With Array Key")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsArray(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new int[] { -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With List")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsList(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new List<int> { -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Dictionary")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsDictionary(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new Dictionary<string, int>();
+            key.Add("Id", -1);
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Anonymous Object")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsAnonymousObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new { Id = -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync<Model4>(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
+        }
+
+        [Theory(DisplayName = "Not Exists With Entity")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public async Task NotExistsEntity(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            var key = new ModelX { Id = -1 };
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = await connection.ExistsAsync(key);
+                connection.Close();
+            }
+
+            Assert.False(exists);
         }
 
         [Theory(DisplayName = "Get Entity by Id")]

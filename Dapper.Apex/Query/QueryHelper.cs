@@ -13,6 +13,7 @@ namespace Dapper.Apex.Query
     /// </summary>
     public class TypeQueryInfo
     {
+        public string ExistsQuery { get; set; }
         public string SelectQuery { get; set; }
         public string SelectAllQuery { get; set; }
         public string SelectCountQuery { get; set; }
@@ -28,6 +29,7 @@ namespace Dapper.Apex.Query
     {
         private const string DefaultConnection = "sqlconnection";
         private const string ColumnEqualsToParamTemplate = "{0} = @{1}";
+        private const string ExistsTemplate = "select * from {0} where {1}";
         private const string SelectTemplate = "select {0} from {1} where {2}";
         private const string SelectAllTemplate = "select {0} from {1}";
         private const string SelectCountTemplate = "select count(*) from {0}";
@@ -186,6 +188,14 @@ namespace Dapper.Apex.Query
             return $"@{property.Name}{paramSufix}";
         }
 
+        public static string GetExistsQuery(IDbConnection connection, TypeQueryInfo queryInfo)
+        {
+            var sqlHelper = GetSqlHelper(connection);
+            var existsQuery = sqlHelper.GetExistsQuery(queryInfo.ExistsQuery);
+
+            return existsQuery;
+        }
+
         private static TypeQueryInfo CreateQueryInfo(IDbConnection connection, TypeInfo typeInfo)
         {
             TypeQueryInfo typeQueryInfo = new TypeQueryInfo();
@@ -223,6 +233,7 @@ namespace Dapper.Apex.Query
 
             var tableName = sqlHelper.FormatDbEntityName(typeInfo.TableName);
 
+            typeQueryInfo.ExistsQuery = string.Format(ExistsTemplate, tableName, keyEqualsParams);
             typeQueryInfo.SelectQuery = string.Format(SelectTemplate, readableColumns, tableName, keyEqualsParams);
             typeQueryInfo.SelectAllQuery = string.Format(SelectAllTemplate, readableColumns, tableName);
             typeQueryInfo.SelectCountQuery = string.Format(SelectCountTemplate, tableName);

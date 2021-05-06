@@ -19,11 +19,11 @@ namespace Dapper.Apex
         /// </summary>
         /// <typeparam name="T">The type of the entity to be deleted.</typeparam>
         /// <param name="connection">The database connection.</param>
-        /// <param name="key">The Tuple representing the entity key.</param>
+        /// <param name="key">The tuple, value, collection, dictionary, expando object or object representing the entity key.</param>
         /// <param name="transaction">The database transaction to be used in the operation.</param>
         /// <param name="commandTimeout">The operation timeout in milliseconds.</param>
         /// <returns>True if the entity was found and successfully deleted.</returns>
-        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, ITuple key, 
+        public static async Task<bool> DeleteAsync<T>(this IDbConnection connection, object key, 
             IDbTransaction transaction = null, int? commandTimeout = null) where T : class
         {
             if (key == null)
@@ -34,7 +34,7 @@ namespace Dapper.Apex
             var typeInfo = TypeHelper.GetTypeInfo(type);
             var queryInfo = QueryHelper.GetQueryInfo(connection, typeInfo);
 
-            DynamicParameters dynParams = GenerateGetParams(type, key, typeInfo.PrimaryKeyProperties);
+            DynamicParameters dynParams = GetParameters(type, key, typeInfo.PrimaryKeyProperties);
 
             var count = await connection.ExecuteAsync(queryInfo.DeleteQuery, dynParams, transaction, commandTimeout);
             return count > 0;
