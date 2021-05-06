@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using AutoFixture;
+using System.Dynamic;
 
 namespace Dapper.Apex.Test
 {
@@ -28,7 +29,7 @@ namespace Dapper.Apex.Test
             using (var connection = dbConnection)
             {
                 connection.Open();
-                count = connection.GetCount<Model2>();
+                count = connection.Count<Model2>();
                 connection.Close();
             }
 
@@ -148,6 +149,27 @@ namespace Dapper.Apex.Test
             {
                 connection.Open();
                 exists = connection.Exists<Model2>(key);
+                connection.Close();
+            }
+
+            Assert.True(exists);
+        }
+
+        [Theory(DisplayName = "Exists With ExpandoObject")]
+        [ClassData(typeof(DbConnectionGenerator))]
+        [TestPriority(0)]
+        public void ExistsExpandoObject(IDbConnection dbConnection)
+        {
+            QueryHelper.FlushCache();
+
+            bool exists = false;
+            dynamic key = new ExpandoObject();
+            key.Model2Id = 1;
+
+            using (var connection = dbConnection)
+            {
+                connection.Open();
+                exists = connection.Exists<Model2>(key as ExpandoObject);
                 connection.Close();
             }
 

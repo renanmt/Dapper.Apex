@@ -27,7 +27,7 @@ namespace Dapper.Apex.Test
             using (var connection = dbConnection)
             {
                 connection.Open();
-                count = await connection.GetCountAsync<Model4>();
+                count = await connection.CountAsync<Model4>();
                 connection.Close();
             }
 

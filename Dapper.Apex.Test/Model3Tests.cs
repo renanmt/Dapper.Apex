@@ -30,7 +30,7 @@ namespace Dapper.Apex.Test
             using (var connection = dbConnection)
             {
                 connection.Open();
-                count = connection.GetCount<Model3>();
+                count = connection.Count<Model3>();
                 connection.Close();
             }
 
