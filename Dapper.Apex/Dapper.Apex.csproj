@@ -1,54 +1,56 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
 
-    <IsPackable>true</IsPackable>
+		<IsPackable>true</IsPackable>
 
-    <Authors>Renan Tonheiro</Authors>
+		<Authors>Renan Tonheiro</Authors>
 
-    <Company />
+		<Company />
 
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
-    <RepositoryUrl>https://github.com/renanmt/Dapper.Apex/</RepositoryUrl>
+		<RepositoryUrl>https://github.com/renanmt/Dapper.Apex/</RepositoryUrl>
 
-    <RepositoryType>git</RepositoryType>
+		<RepositoryType>git</RepositoryType>
 
-    <PackageTags>orm;micro-orm;sql</PackageTags>
+		<PackageTags>orm;micro-orm;sql</PackageTags>
 
-    <Description>Dapper Apex is a set of tools and extensions for Dapper that provides CRUD operations for your entities.</Description>
+		<Description>Dapper Apex is a set of tools and extensions for Dapper that provides CRUD operations for your entities.</Description>
 
-    <PackageIcon>icon.png</PackageIcon>
+		<PackageIcon>icon.png</PackageIcon>
 
-    <PackageProjectUrl>https://github.com/renanmt/Dapper.Apex/</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/renanmt/Dapper.Apex/</PackageProjectUrl>
 
-    <Version>2.0.0</Version>
+		<Version>2.0.1</Version>
 
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<AssemblyVersion>2.0.1.0</AssemblyVersion>
 
-    <FileVersion>2.0.0.0</FileVersion>
+		<FileVersion>2.0.1.0</FileVersion>
 
-    <PackageReleaseNotes>- Added methods Exists and ExistsAsync, to check for existence of an entity in the database.
-- Added methods Count and CountAsync (Replacing GetCount and GetCountAsync)
-- Support for more key object types in Get, Delete and Exists methods.
-- Removed methods GetCount and GetCountAsync (Replaced by Count adn CountAsync)</PackageReleaseNotes>
-  </PropertyGroup>
+		<PackageReleaseNotes>
+			- Added methods Exists and ExistsAsync, to check for existence of an entity in the database.
+			- Added methods Count and CountAsync (Replacing GetCount and GetCountAsync)
+			- Support for more key object types in Get, Delete and Exists methods.
+			- Removed methods GetCount and GetCountAsync (Replaced by Count adn CountAsync)
+		</PackageReleaseNotes>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.78" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.0.*" />
+	</ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
-    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
+		<PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\icon.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>

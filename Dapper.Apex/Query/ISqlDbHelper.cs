@@ -13,11 +13,18 @@ namespace Dapper.Apex.Query
         string GetSurrogateKeyReturnQuery();
 
         /// <summary>
-        /// Formats the column, table or database name to be used in sql queries.
+        /// Formats the column to be used in sql queries.
         /// </summary>
-        /// <param name="entityName">The name of the column, table or database to be formatted.</param>
-        /// <returns>The formatted column, table or database name.</returns>
-        string FormatDbEntityName(string entityName);
+        /// <param name="column">The name of the column to be formatted.</param>
+        /// <returns>The formatted column name.</returns>
+        string FormatColumnName(string column);
+
+        /// <summary>
+        /// Formats the table to be used in sql queries.
+        /// </summary>
+        /// <param name="tableName">The name of the table to be formatted.</param>
+        /// <returns>The formatted table name.</returns>
+        string FormatTableName(string tableName);
 
         /// <summary>
         /// Get the query that returns a single value of 0 or 1 if the given test is passed.

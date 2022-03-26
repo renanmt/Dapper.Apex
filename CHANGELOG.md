@@ -1,6 +1,10 @@
 ﻿# Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2022-03-26
+### Fixed
+- Table name format function that wasn't working properly with certain inputs using [Table] attribute.
+
 ## [2.0.0] - 2021-05-05
 ### Added
 - Methods Exists and ExistsAsync, to check for existence of an entity in the database.

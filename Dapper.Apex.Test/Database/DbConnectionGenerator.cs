@@ -26,7 +26,7 @@ namespace Dapper.Apex.Test.Database
 
         public static MySqlConnection CreateMySqlConnection(bool addDatabase)
         {
-            return new MySqlConnector.MySqlConnection($"server=127.0.0.1;uid=root;pwd=admin;{(addDatabase ? "database=DapperTest;" : string.Empty)}");
+            return new MySqlConnector.MySqlConnection($"server=127.0.0.1;uid=admin;pwd=123;{(addDatabase ? "database=DapperTest;" : string.Empty)}");
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

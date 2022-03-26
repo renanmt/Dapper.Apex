@@ -105,7 +105,7 @@ namespace Dapper.Apex.Query
         /// <param name="queryInfo">The TypeQueryInfo object containing all queries for the given type.</param>
         /// <param name="entitiesCount">The amount of entities to be processed.</param>
         /// <returns>The insert query for multiple entities.</returns>
-        public static string GetInsertManyQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo, 
+        public static string GetInsertManyQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo,
             int entitiesCount)
         {
             var surrogateKeySql = typeInfo.KeyType == KeyType.Surrogate ? $"{GetSurrogateKeyReturnQuery(connection)};" : string.Empty;
@@ -140,7 +140,7 @@ namespace Dapper.Apex.Query
         public static string GetInsertQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo)
         {
             var surrogateKeySql = typeInfo.KeyType == KeyType.Surrogate ? $"{GetSurrogateKeyReturnQuery(connection)};" : string.Empty;
-            return $"{queryInfo.InsertQuery};{surrogateKeySql};";
+            return $"{queryInfo.InsertQuery};{surrogateKeySql}";
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Dapper.Apex.Query
         /// <param name="fields">The fields to be used in the query assembly.</param>
         /// <param name="exclude">True for exclusive, False for inclusive</param>
         /// <returns>The personalized update query statement.</returns>
-        public static string GetUpdateFieldsQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo, 
+        public static string GetUpdateFieldsQuery(IDbConnection connection, TypeInfo typeInfo, TypeQueryInfo queryInfo,
             IEnumerable<string> fields, bool exclude = false)
         {
             var key = $"{string.Join(null, fields)}{exclude}";
@@ -231,7 +231,7 @@ namespace Dapper.Apex.Query
 
             var insertParams = sb.ToString();
 
-            var tableName = sqlHelper.FormatDbEntityName(typeInfo.TableName);
+            var tableName = sqlHelper.FormatTableName(typeInfo.TableName);
 
             typeQueryInfo.ExistsQuery = string.Format(ExistsTemplate, tableName, keyEqualsParams);
             typeQueryInfo.SelectQuery = string.Format(SelectTemplate, readableColumns, tableName, keyEqualsParams);
@@ -262,22 +262,22 @@ namespace Dapper.Apex.Query
 
         private static string GetColumnEqualsToParam(string columnName, ISqlDbHelper sqlHelper)
         {
-            return string.Format(ColumnEqualsToParamTemplate, sqlHelper.FormatDbEntityName(columnName), columnName);
+            return string.Format(ColumnEqualsToParamTemplate, sqlHelper.FormatColumnName(columnName), columnName);
         }
 
-        private static void GenerateColumnSequence(StringBuilder sb, IEnumerable<PropertyInfo> properties, ISqlDbHelper sqlHelper, 
+        private static void GenerateColumnSequence(StringBuilder sb, IEnumerable<PropertyInfo> properties, ISqlDbHelper sqlHelper,
             bool forParams = false, string paramSufix = "")
         {
             for (var i = 0; i < properties.Count(); i++)
             {
                 var property = properties.ElementAt(i);
-                sb.Append(forParams ? GetParamName(property, paramSufix) : sqlHelper.FormatDbEntityName(property.Name));
+                sb.Append(forParams ? GetParamName(property, paramSufix) : sqlHelper.FormatColumnName(property.Name));
                 if (i < properties.Count() - 1)
                     sb.AppendFormat(", ");
             }
         }
 
-        private static void GenerateColumnEqualsParamSequence(IEnumerable<PropertyInfo> properties, ISqlDbHelper sqlHelper, 
+        private static void GenerateColumnEqualsParamSequence(IEnumerable<PropertyInfo> properties, ISqlDbHelper sqlHelper,
             StringBuilder sb, string separator)
         {
             for (var i = 0; i < properties.Count(); i++)
